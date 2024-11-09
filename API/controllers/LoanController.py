@@ -1,10 +1,9 @@
 from datetime import datetime
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from flask_restful import Resource, marshal_with, reqparse, fields
+from flask_restful import Resource, marshal, reqparse, fields
 
 from DB.Models import Book, Loan, User
 from DB.Extension import db
-import marshal
 
 
 create_loan_args = reqparse.RequestParser()
@@ -29,7 +28,6 @@ loan_fields = {
 
 class createLoan(Resource):
     @jwt_required()
-    @marshal_with(loan_fields)
     def post(self):
         # Obtener el user_id directamente desde el JWT
         user_idd = get_jwt_identity()
@@ -68,27 +66,32 @@ class createLoan(Resource):
         db.session.add(loan)
         db.session.commit()
 
-        return loan, 201
+        return marshal(loan, loan_fields), 201
+
 
 class readLoans(Resource):
     @jwt_required()
     def get(self):
         loans = Loan.query.all()
-        return loans, 200
-    
+        return marshal(loans, loan_fields), 200
+
 
 class readLoan(Resource):
     @jwt_required()
     def get(self, id):
         loan = Loan.query.get(id)
         if loan:
-            return loan, 200
+            return marshal(loan, loan_fields), 200
         else:
             return {"message": "Loan not found"}, 404
-        
+
+
 class updateLoan(Resource):
     @jwt_required()
     def post(self, id):
+
+        user_idd = get_jwt_identity()
+
         loan = Loan.query.get(id)
         if not loan:
             return {"message": "Loan not found"}, 404
@@ -105,7 +108,7 @@ class updateLoan(Resource):
             errors.append("Return date is required")
 
         # Validación de existencia de usuario y libro
-        user = User.query.get(args["user_id"])
+        user = User.query.get(user_idd)
         if not user:
             errors.append("Invalid user ID")
 
@@ -128,7 +131,6 @@ class updateLoan(Resource):
             return {"errors": errors}, 400
 
         # Actualiza los campos del préstamo
-        loan.user_id = args["user_id"]
         loan.book_id = args["book_id"]
         loan.loan_date = loan_date
         loan.return_date = return_date
@@ -137,12 +139,12 @@ class updateLoan(Resource):
         db.session.commit()
 
         return marshal(loan, loan_fields), 200
-    
+
 
 class deleteLoan(Resource):
     @jwt_required()
     def delete(self, id):
-        loan=Loan.query.get(id)
+        loan = Loan.query.get(id)
         if not loan:
             return {"message": "Loan not found"}, 404
 
@@ -151,5 +153,3 @@ class deleteLoan(Resource):
         db.session.commit()
 
         return {"message": "Loan deleted successfully"}, 200
-    
-
