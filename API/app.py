@@ -2,12 +2,14 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify
 from flask_jwt_extended import JWTManager
 from flask_restful import Api
+
 from DB.Extension import db
 from DB.Seeders import runSeeders
 
 from controllers.AuthController import Login, Register, Logout
 from controllers.BookController import createBook, deleteBook, readBook, readBooks, updateBook
 from controllers.LoanController import createLoan, deleteLoan, readLoan, readLoans, updateLoan
+from controllers.CategoryController import createCategory, deleteCategory, readCategories, readCategory, updateCategory
 
 import os
 
@@ -43,6 +45,13 @@ api.add_resource(readLoan, "/api/loan/<int:id>")
 api.add_resource(readLoans, "/api/loan")
 api.add_resource(updateLoan, "/api/loan/update/<int:id>")
 api.add_resource(deleteLoan, "/api/loan/delete/<int:id>")
+
+api.add_resource(createCategory,"/api/category/create")
+api.add_resource(readCategory, "/api/category/<int:id>")
+api.add_resource(readCategories, "/api/category")
+api.add_resource(updateCategory, "/api/category/update/<int:id>")
+api.add_resource(deleteCategory, "/api/category/delete/<int:id>")
+
 
 
 
