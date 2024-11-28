@@ -72,3 +72,59 @@ def app():
 def client(app):
     return app.test_client()  
 
+
+#    ANTES DE INCIAR CON LAS PRUEBAS, CREAREMOS LOS DATOS DE PRUEBAS PARA LAS MISMAS      #
+@pytest.fixture
+def new_user(client):
+    user_data = {"name": "Juan", "email": "test@test.com", "password": "Holaaputa1."}
+    response = client.post("/api/auth/register", json=user_data)
+    return user_data
+
+@pytest.fixture
+def accessToken(client, new_user):
+    user = {"email": new_user["email"], "password": new_user["password"]}
+    response = client.post("/api/auth/login", json=user)
+    return response.json["accessToken"]
+
+@pytest.fixture
+def new_category(client, accessToken):
+    category_data = {"name": "Fantasy"}
+    response = client.post(
+        "/api/category/create",
+        json=category_data,
+        headers={"Authorization": f"Bearer {accessToken}"},
+    )
+    return response.json
+
+@pytest.fixture
+def new_book(client, new_category, accessToken):
+    book_data = {
+        "title": "The Great Book",
+        "author": "John Doe",
+        "category_id": new_category["id"], 
+        "description": "An amazing book about life and adventure.",
+        "publication_date": "2024-01-01",
+    }
+    response = client.post(
+        "/api/book/create",
+        json=book_data,
+        headers={"Authorization": f"Bearer {accessToken}"},
+    )
+    return response.json
+
+@pytest.fixture
+def new_loan(client, new_book, accessToken):
+    loan_data = {
+        "book_id": new_book["id"],
+        "loan_date": "2024-11-27",
+        "return_date": "2024-12-04",
+    }
+
+    response = client.post(
+        "/api/loan/create",
+        json=loan_data,
+        headers={"Authorization": f"Bearer {accessToken}"},
+    )
+    return response.json
+#################################################################
+

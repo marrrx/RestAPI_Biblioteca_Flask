@@ -34,7 +34,7 @@ class createCategory(Resource):
         db.session.add(category)
         db.session.commit()
 
-        return {"message": "Category created successfully"}, 201
+        return marshal(category, categoryFields), 201
 
 
 class readCategories(Resource):

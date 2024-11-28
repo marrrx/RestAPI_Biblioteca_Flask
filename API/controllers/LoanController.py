@@ -29,6 +29,8 @@ loan_fields = {
 class createLoan(Resource):
     @jwt_required()
     def post(self):
+        session = db.session
+
         # Obtener el user_id directamente desde el JWT
         user_idd = get_jwt_identity()
 
@@ -36,11 +38,11 @@ class createLoan(Resource):
         args = create_loan_args.parse_args()
 
         # Validación de existencia de usuario y libro
-        user = User.query.get(user_idd)  # Usamos el user_id del JWT
+        user = session.get(User, user_idd)  # Usamos el user_id del JWT
         if not user:
             return {"message": "User not found"}, 404
 
-        book = Book.query.get(args["book_id"])
+        book = session.get(Book, args["book_id"])
         if not book:
             return {"message": "Book not found"}, 404
 
@@ -56,7 +58,7 @@ class createLoan(Resource):
 
         # Crear el nuevo préstamo
         loan = Loan(
-            user_id=user_idd,  # Ya no necesitamos recibir el user_id desde el cliente
+            user_id=user_idd,
             book_id=args["book_id"],
             loan_date=loan_date,
             return_date=return_date,
@@ -79,7 +81,8 @@ class readLoans(Resource):
 class readLoan(Resource):
     @jwt_required()
     def get(self, id):
-        loan = Loan.query.get(id)
+        session = db.session
+        loan = session.get(Loan, id)
         if loan:
             return marshal(loan, loan_fields), 200
         else:
@@ -144,7 +147,8 @@ class updateLoan(Resource):
 class deleteLoan(Resource):
     @jwt_required()
     def delete(self, id):
-        loan = Loan.query.get(id)
+        session = db.session
+        loan = session.get(Loan, id)
         if not loan:
             return {"message": "Loan not found"}, 404
 
